@@ -2,7 +2,7 @@ create table pdf ( -- abstract
 	pdfId varchar(36) not null,
     uploadTime datetime not null,
     title varchar(30) not null,
-    pdfFile varchar(400), -- TODO choose if we want path or actual file
+    pdfFile varchar(256), -- TODO choose if we want path or actual file
     pdfType enum('addressProof','credentialProof','paymentProof') not null,
     -- constraints
     primary key (pdfId)

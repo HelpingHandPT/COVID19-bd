@@ -1,8 +1,7 @@
 create table user_entity (
 	userId varchar(36) not null, -- type for uuid
     username varchar(20) not null,
-    passwordHash varchar(30) not null, -- encrypted  TODO
-    salt varchar(30) not null, -- TODO
+    userPassword varchar(256) not null, -- encrypted : <algorithm>$<iterations>$<salt>$<hash>
     fullName varchar(50) not null,
     email varchar(320) not null,
     activeStatus bool not null,

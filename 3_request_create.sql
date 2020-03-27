@@ -35,7 +35,7 @@ create table payment (
 	paymentId varchar(36) not null,
     paymentValue decimal(6,2) unsigned not null, -- safe to assume value wont excede 9999 euros?
     paymentDateTime datetime not null,
-    method enum('PayPal','MBWay','Transaction', 'Cash') not null, -- TODO check which payment methods will be accepted
+    method enum('PayPal','Card') not null, 
     originIBAN varchar(25) not null,
     destinationIBAN varchar(25) not null,
     approved bool not null,
