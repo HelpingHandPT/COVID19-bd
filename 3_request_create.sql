@@ -14,7 +14,6 @@ create table request (
     foreign key (atRiskId) references at_risk (userId),
     foreign key (helperId) references helper (userId)
 );
-drop table request;
 
 create table review ( -- TODO constraint to check reviewerId and reviewedId are valid
 	reviewId varchar(36) not null,
@@ -29,7 +28,6 @@ create table review ( -- TODO constraint to check reviewerId and reviewedId are 
     foreign key (requestId) references request (requestId),
     constraint validRating check (rating <= 10)
 );
-drop table review;
 
 create table payment (
 	paymentId varchar(36) not null,
@@ -45,4 +43,3 @@ create table payment (
     primary key (paymentId),
     foreign key (requestId) references request (requestId)
 );
-drop table payment;

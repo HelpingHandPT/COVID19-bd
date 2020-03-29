@@ -1,53 +1,4 @@
--- notes
-create table note ( -- abstract
-	noteId varchar(36) not null,
-	authorId varchar(36) not null,
-    creationDate date not null,
-    lastUpdate datetime not null,
-    title varchar(30) not null,
-    content varchar(400),
-    noteType enum('healthLog','log','user') not null,
-    -- constraints
-    primary key (noteId),
-    foreign key (authorId) references user_entity(userId)
-);
-drop table note;
-
-create table note_log (
-	logNoteId varchar(36) not null,
-    noteType enum('log') not null,
-    logId varchar(36) not null,
-    -- constraints
-    primary key (logNoteId),
-    foreign key (logNoteId, noteType) references note (noteId, noteType),
-    foreign key (logId) references user_log (logId)
-);
-drop table note_log;
-
-create table note_health_log (
-	healthLogNoteId varchar(36) not null,
-    noteType enum('healthLog') not null,
-    healthLogId varchar(36) not null,
-    -- constraints
-    primary key (healthLogNoteId),
-    foreign key (healthLogNoteId, noteType) references note (noteId, noteType),
-    foreign key (healthLogId) references health_log (patientId)
-);
-drop table note_health_log;
-
-create table note_user (
-	userNoteId varchar(36) not null,
-    noteType enum('user') not null,
-    userId varchar(36) not null,
-    -- constraints
-    primary key (userNoteId),
-    foreign key (userNoteId, noteType) references note (noteId, noteType),
-    foreign key (userId) references user_entity (userId)
-);
-drop table note_user;
-
 -- classes associated with notes
-
 create table user_log (
 	logId varchar(36) not null,
     ip varchar(15), -- xxx.xxx.xxx.xxx format, 12+3 separators
@@ -67,7 +18,6 @@ create table user_log (
     constraint valid_lng check (lng >= -180 and lng <=180),
     constraint valid_zip check (zipCode < 10000000)
 );
-drop table user_log;
 
 create table health_log (
 	patientId varchar(36) not null,
@@ -77,4 +27,66 @@ create table health_log (
     foreign key (patientId) references user_entity (userId),
     foreign key (monitorId) references monitor (userId)
 );
-drop table health_log;
+
+-- type entities -----------------------------------   run the inserts
+create table note_type(
+	noteTypeId tinyint not null,
+    noteType varchar(9) not null,
+    -- constraints
+    primary key (noteTypeId)
+);
+insert into note_type
+select 1, 'healthLog' union all
+select 2, 'log' union all
+select 3, 'user';
+
+-- note abstract
+create table note (
+	noteId varchar(36) not null,
+	authorId varchar(36) not null,
+    creationDate date not null,
+    lastUpdate datetime not null,
+    title varchar(30) not null,
+    content varchar(400),
+    noteType tinyint not null,
+    -- constraints
+    primary key (noteId),
+    foreign key (authorId) references user_entity (userId),
+    foreign key (noteType) references note_type (noteTypeId)
+);
+
+-- note entities specialization
+create table health_log_note (
+	healthLogNoteId varchar(36) not null,
+    noteType tinyint as (1) stored,
+    healthLogId varchar(36) not null,
+    -- constraints
+    primary key (healthLogNoteId),
+    foreign key (healthLogNoteId) references note (noteId),
+    foreign key (noteType) references note (noteType),
+    foreign key (healthLogId) references health_log (patientId)
+);
+
+create table log_note (
+	logNoteId varchar(36) not null,
+    noteType tinyint as (2) stored,
+    logId varchar(36) not null,
+    -- constraints
+    primary key (logNoteId),
+    foreign key (logNoteId) references note (noteId),
+    foreign key (noteType) references note (noteType),
+    foreign key (logId) references user_log (logId)
+);
+
+create table user_note (
+	userNoteId varchar(36) not null,
+    noteType tinyint as (3) stored,
+    userId varchar(36) not null,
+    -- constraints
+    primary key (userNoteId),
+    foreign key (userNoteId) references note (noteId),
+    foreign key (noteType) references note (noteType),
+    foreign key (userId) references user_entity (userId)
+);
+
+

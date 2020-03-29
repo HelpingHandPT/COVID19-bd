@@ -5,7 +5,6 @@ create table category (
     -- constraints
     primary key (categoryId)
 );
-drop table category;
 
 create table sub_category (
 	subCategoryId varchar(36) not null,
@@ -16,7 +15,6 @@ create table sub_category (
     primary key (subCategoryId),
     foreign key (categoryId) references category (categoryId)
 );
-drop table sub_category;
 
 -- junction tables
 create table at_risk_category (
@@ -27,7 +25,6 @@ create table at_risk_category (
     foreign key (userId) references at_risk (userId),
     foreign key (subCategoryId) references sub_category (subCategoryId)
 );
-drop table at_risk_category;
 
 create table helper_category (
 	userId varchar(36) not null,
@@ -37,7 +34,6 @@ create table helper_category (
     foreign key (userId) references helper (userId),
     foreign key (subCategoryId) references sub_category (subCategoryId)
 );
-drop table helper_category;
 
 create table request_category (
 	requestId varchar(36) not null,
@@ -47,7 +43,6 @@ create table request_category (
     foreign key (requestId) references request (requestId),
     foreign key (subCategoryId) references sub_category (subCategoryId)
 );
-drop table request_category;
 
 create table ad_category (
 	adId varchar(36) not null,
@@ -57,4 +52,3 @@ create table ad_category (
     foreign key (adId) references ad (adId),
     foreign key (subCategoryId) references sub_category (subCategoryId)
 );
-drop table ad_category;

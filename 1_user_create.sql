@@ -1,3 +1,35 @@
+-- type entities -----------------------------------   run the inserts
+create table user_type (
+	userTypeId tinyint not null,
+    userType varchar(9) not null,
+    -- constraints
+    primary key (userTypeId)
+);
+insert into user_type
+select 1, 'executive' union
+select 2, 'normal';
+
+create table executive_type (
+	executiveTypeId tinyint not null,
+	executiveType varchar(7) not null,
+    -- constraints
+    primary key (executiveTypeId)
+);
+insert into executive_type
+select 1, 'admin' union all
+select 2, 'monitor';
+
+create table normal_type (
+	normalTypeId tinyint not null,
+	normalType varchar(7) not null,
+    -- constraints
+    primary key (normalTypeId)
+);
+insert into normal_type
+select 1, 'atRisk' union all
+select 2, 'helper';
+
+-- user entities abstract
 create table user_entity (
 	userId varchar(36) not null, -- type for uuid
     username varchar(20) not null,
@@ -8,13 +40,75 @@ create table user_entity (
     lastAccess date not null,
     creationDate date not null,
     lastUpdate datetime not null,
-    userType enum('executive', 'normal') not null,
+    userType tinyint not null,
     -- constraints
     primary key (userId),
+    foreign key (userType) references user_type (userTypeId),
     unique(username),
     unique(email)
 );
-drop table user_entity;
+
+create table executive_user (
+	userId varchar(36) not null,
+    userType tinyint as (1) stored,
+    executiveType tinyint not null,
+    -- constraints
+    primary key (userId),
+    foreign key (userType) references user_entity (userType),
+	foreign key (userId) references user_entity (userId),
+    foreign key (executiveType) references executive_type (executiveTypeId)
+);
+
+create table normal_user (
+	userId varchar(36) not null,
+    userType tinyint as (2) stored,
+    normalType tinyint not null,
+    userDescription varchar(280),
+    -- constraints
+    primary key (userId),
+	foreign key (userType) references user_entity (userType),
+	foreign key (userId) references user_entity (userId),
+    foreign key (normalType) references normal_type (normalTypeId)
+);
+
+-- user entities specialization
+create table user_admin (
+	userId varchar(36) not null,
+    executiveType tinyint as (1) stored,
+    -- constraints
+    primary key (userId),
+    foreign key (userId) references executive_user (userId),
+    foreign key (executiveType) references executive_type (executiveTypeId)
+);
+
+create table monitor (
+	userId varchar(36) not null,
+	executiveType tinyint as (2) stored,
+    -- constraints
+    primary key (userId),
+    foreign key (userId) references executive_user (userId),
+    foreign key (executiveType) references executive_type (executiveTypeId)
+);
+
+create table at_risk (
+	userId varchar(36) not null,
+    normalType tinyint as (1) stored,
+    -- constraints
+    primary key (userId),
+	foreign key (userId) references normal_user (userId),
+    foreign key (normalType) references normal_type (normalTypeId)
+);
+
+create table helper (
+	userId varchar(36) not null,
+    normalType tinyint as (2) stored,
+    -- constraints
+    primary key (userId),
+	foreign key (userId) references normal_user (userId),
+    foreign key (normalType) references normal_type (normalTypeId)
+);
+
+-- associated to users
 
 create table social_media (
 	userId varchar(36) not null,
@@ -29,7 +123,6 @@ create table social_media (
     primary key (userId),
     foreign key (userId) references user_entity (userId)
 );
-drop table social_media;
 
 create table image(
 	userId varchar(36) not null,
@@ -40,56 +133,6 @@ create table image(
     foreign key (userId) references user_entity (userId)
     
 );
-drop table iamge;
-
-create table user_admin (
-	userId varchar(36) not null,
-    userType enum('executive') not null,
-    -- constraints
-    primary key (userId),
-    foreign key (userId, userType) references user_entity (userId, userType)
-);
-drop table user_admin;
-
-create table monitor (
-	userId varchar(36) not null,
-    userType enum('executive') not null,
-    -- constraints
-    primary key (userId),
-    foreign key (userId, userType) references user_entity (userId, userType)
-);
-drop table monitor;
-
-create table normal_user (
-	userId varchar(36) not null,
-    userType enum('normal') not null,
-    normalType enum('atRisk','helper') not null,
-    userDescription varchar(280),
-    -- constraints
-    primary key (userId),
-    foreign key (userId, userType) references user_entity (userId, userType)
-);
-drop table normal_user;
-
-create table at_risk (
-	userId varchar(36) not null,
-    normalType enum('atRisk') not null,
-    -- constraints
-    primary key (userId),
-    foreign key (userId, normalType) references normal_user (userId, normalType)
-);
-drop table at_risk;
-
-create table helper (
-	userId varchar(36) not null,
-    normalType enum('helper') not null,
-    -- constraints
-    primary key (userId),
-    foreign key (userId, normalType) references normal_user (userId, normalType)
-);
-drop table helper;
-
--- associated to users
 
 create table address(
 	addressId varchar(36) not null,
@@ -104,7 +147,6 @@ create table address(
     primary key (addressId),
     foreign key (userId) references user_entity (userId)
 );
-drop table address;
 
 create table ad(
 	adId varchar(36) not null,
@@ -117,7 +159,6 @@ create table ad(
     primary key (adId),
     foreign key (helperId) references helper (userId)
 );
-drop table ad;
 
 create table credential(
 	credentialId varchar(36) not null,
@@ -129,7 +170,6 @@ create table credential(
     -- constraints
     primary key (credentialId)
 );
-drop table credential;
 
 create table at_risks_favourite( -- at risk is choosing favourite
 	atRiskId varchar(36) not null,
@@ -140,7 +180,6 @@ create table at_risks_favourite( -- at risk is choosing favourite
     foreign key (atRiskId) references at_risk (userId),
     foreign key (helperId) references helper (userId)
 );
-drop table at_risks_favourite;
 
 create table helpers_favourite( -- helper is choosing favourite
 	helperId varchar(36) not null,
@@ -151,4 +190,3 @@ create table helpers_favourite( -- helper is choosing favourite
      foreign key (helperId) references helper (userId),
     foreign key (atRiskId) references at_risk (userId)   
 );
-drop table helpers_favourite;
